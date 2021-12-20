@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+    <article>
+        <h3>Transfer #{{ transfer.id }}</h3>
+        <div>Originator: {{ transfer.originator.username }}</div>
+        <div>Receiver: {{ transfer.receiver.username }}</div>
+        <div>Amount: {{ transfer.amount }} {{ transfer.currency }}</div>
+        <div>Date: {{ transfer.date_modified }}</div>
+        <div>Status: {{ transfer.get_status_display() }}</div>
+        <div>
+            <hr />
+            <h3>Notes</h3>
+            <table role="grid">
+                <tr>
+                    <th></th>
+                    <th>Date created</th>
+                    <th>Created by</th>
+                </tr>
+                {% for n in transfer.notes %}
+                <tr>
+                    <td>{{n.note}}</td>
+                    <td>{{n.date_created}}</td>
+                    <td>{{n.created_by.username}}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3">No notes available</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <hr />
+        <form method="post" action="{{ url_for('transfers.add_note', transfer_id=transfer.id) }}">
+            <textarea required name="note"></textarea>
+            <input type="submit" value="Add">
+        </form>
+    </article>
+{% endblock %}

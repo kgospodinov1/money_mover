@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block head %}
+<script type="text/javascript">
+    function transfers_list() {
+        return {
+            page: 1,
+            generate_details_url(transfer_id){
+              return "{{ url_for('transfers.list_') }}" + transfer_id
+            },
+            get_transfers() {
+                console.warn("get_transfers");
+                if(this.loading){
+                    return;
+                }
+                this.loading = true;
+                this.error = null;
+                this.transfers = [];
+                fetch("{{ url_for('transfers.fetch_transfers') }}?page=" + this.page, {
+                    method: 'GET',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(this.form_data)
+                })
+                .then(response => {
+                    if(!response.ok){
+                        this.error = true;
+                    }
+                    return response.json()
+                })
+                .then(data => {
+                    this.loading = false;
+                    this.transfers = data['result'];
+                })
+                .catch(data => {
+                    this.loading=false;
+                })
+            }
+        }
+    }
+</script>
+{% endblock %}
+{% block content %}
+    <article>
+        <h3>Transfers</h3>
+        <table x-data="transfers_list()" x-init="get_transfers()" role="grid">
+          <thead>
+            <tr>
+              <th scope="col">Date modified</th>
+              <th scope="col">Originator</th>
+              <th scope="col">Amount</th>
+              <th scope="col"></th>
+            </tr>
+          </thead>
+          <tbody>
+          <template x-for="transfer in transfers" :key="transfer.id">
+            <tr>
+              <td x-text="transfer.date_modified"></td>
+              <td x-text="transfer.originator.username"></td>
+              <td>
+                  <span x-text="transfer.amount"></span>
+                  <span x-text="transfer.currency"></span>
+              </td>
+                <td>
+                    <a x-bind:href="generate_details_url(transfer.id)">Details</a>
+              </td>
+            </tr>
+        </template>
+         <template x-if="loading">
+               <tr>
+                    <td colspan="3" style="text-align: center;">Loading</td>
+                </tr>
+         </template>
+          </tbody>
+        </table>
+    </article>
+{% endblock %}

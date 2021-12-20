@@ -1,0 +1,49 @@
+{% block head %}
+<script type="text/javascript">
+    function login_form() {
+        return {
+            loading: false,
+            error: null,
+            form_data: {
+                username: '',
+                password: ''
+            },
+            login() {
+                if(this.loading){
+                    return;
+                }
+                this.loading = true;
+                this.error = null;
+                fetch("{{ url_for('users.login_post') }}", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(this.form_data),
+                    redirect: 'follow'
+                })
+                .then(response => {
+                    if(response.redirected){
+                        window.location.href = response.url;
+                    }
+                    if(!response.ok){
+                        this.error = true;
+                    }
+                    return response.json()
+                })
+                .then(data => {
+                    this.loading = false;
+                })
+                .catch(data => {
+                    this.loading=false;
+                })
+            }
+        }
+    }
+</script>
+{% endblock %}
+<h2>Login</h2>
+<form action="{{ url_for('users.login_post') }}" method="post" x-data="login_form()" @submit.prevent="login">
+    <label for="username">Username</label><input x-bind:aria-invalid="error ? 'true': null" x-model="form_data.username" id="username" name="username" type="text" required>
+    <label for="password">Password</label><input x-bind:aria-invalid="error ? 'true': null" x-model="form_data.password" id="password" name="password" type="password" required>
+    <button id="login-btn" type="submit" x-show="!loading" :disabled="loading">Login</button>
+    <button  type="submit" aria-busy="true" class="secondary" x-show="loading"></button>
+</form>
